@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 from torchvision.datasets import MNIST
 from torchvision.utils import make_grid as make_image_grid
-from tqdm import tnrange
+from tqdm import *
 
 from vae_model import VAE
 
@@ -24,21 +24,21 @@ def criterion(x_out, x_in, z_mu, z_logvar):
     loss = (bce_loss + kld_loss) / x_out.size(0) # normalize by batch size
     return loss
 
-# Train
-def train(model,optimizer,dataloader,epochs=15):
+# Train the model
+def train(model, optimizer, dataloader, epochs=15):
     losses = []
-    for epoch in tnrange(epochs,desc='Epochs'):
+    for _ in tqdm(range(epochs), desc='Epochs'):
         for images,_ in dataloader:
             x_in = Variable(images)
             optimizer.zero_grad()
             x_out, z_mu, z_logvar = model(x_in)
-            loss = criterion(x_out,x_in,z_mu,z_logvar)
+            loss = criterion(x_out, x_in, z_mu, z_logvar)
             loss.backward()
             optimizer.step()
             losses.append(loss.data)
     return losses
 
-# Test
+# Test the model
 def test(model, dataloader):
     running_loss = 0.0
     for images, _ in dataloader:
@@ -46,8 +46,14 @@ def test(model, dataloader):
         x_out, z_mu, z_logvar = model(x_in)
         loss = criterion(x_out, x_in, z_mu, z_logvar)
         running_loss = running_loss + (loss.data * x_in.size(0))
-    return running_loss/len(dataloader.dataset)
+    return running_loss / len(dataloader.dataset)
 
+def visualize_loss(loss):
+    plt.figure(figsize=(10, 5))
+    plt.plot(loss)
+    plt.show()
+
+# Save the results
 def visualize_mnist_vae(model, dataloader, num=16, sample_dir="./sample"):
     def imshow(img):
         npimg = img.numpy()
@@ -79,10 +85,8 @@ def main():
         MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor()),
         batch_size=128, shuffle=True)
     
-    train_losses = train(model,optimizer,trainloader)
-    plt.figure(figsize=(10,5))
-    plt.plot(train_losses)
-    plt.show()
+    train_losses = train(model, optimizer, trainloader)
+    visualize_loss(train_losses)
 
     # Testing
     # test_loss = test(model,testloader)
