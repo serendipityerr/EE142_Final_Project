@@ -15,7 +15,7 @@ from tqdm import *
 
 from vae_model import VAE
 
-torch.manual_seed(2017) 
+torch.manual_seed(42) 
 sns.set_style('dark')
 
 def criterion(x_out, x_in, z_mu, z_logvar):
@@ -142,12 +142,8 @@ def main():
     model = VAE()
     optimizer = torch.optim.Adam(model.parameters())
     # Data loaders
-    trainloader = DataLoader(
-        MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor()),
-        batch_size=64, shuffle=True)
-    testloader = DataLoader(
-        MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor()),
-        batch_size=64, shuffle=True)
+    trainloader = DataLoader(MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor()), batch_size=64, shuffle=True)
+    testloader = DataLoader(MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor()), batch_size=64, shuffle=True)
     
     epoch = 200
     train_losses = train(model, optimizer, trainloader, epoch)
